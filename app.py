@@ -41,7 +41,7 @@ def dtw_distance(series1, series2):
 
 
 # Streamlit 应用程序
-st.set_page_config(page_title="外购件与自制件在线分析与预测平台", layout="wide")
+st.set_page_config(page_title="外购件与自制件在线分析平台", layout="wide")
 
 # 侧边栏文件上传和参数设置
 st.sidebar.title("参数设置")
@@ -146,17 +146,32 @@ if uploaded_file is not None:
 
         if show_dtw:
             st.markdown("### DTW 对齐路径图")
-            fig, ax = plt.subplots(figsize=(14, 7))
+
+            fig = go.Figure()
+            time_a_clean = time_a_clean.astype(str)
+            time_b_clean = time_b_clean.astype(str)
+            # 添加 DTW 路径
             for (i, j) in path:
-                ax.plot([time_a_clean[i], time_b_clean[j]], [deviation_a_clean[i], deviation_b_clean[j]], color='gray',
-                        linestyle='dotted')
-            ax.plot(time_a_clean, deviation_a_clean, label='外购件偏差值', color="#88C1D0")
-            ax.plot(time_b_clean, deviation_b_clean, label='自制件偏差值', color="#FFB27F")
-            ax.legend()
-            ax.set_xlabel('时间', fontsize=16)
-            ax.set_ylabel('偏差值', fontsize=16)
-            ax.set_title('DTW 对齐路径图', fontsize=16)
-            st.pyplot(fig)
+                fig.add_trace(
+                    go.Scatter(x=[time_a_clean[i], time_b_clean[j]], y=[deviation_a_clean[i], deviation_b_clean[j]],
+                               mode='lines', line=dict(color='gray', dash='dot'), showlegend=False))
+
+            # 添加原始偏差数据曲线
+            fig.add_trace(go.Scatter(x=time_a_clean, y=deviation_a_clean, mode='lines', name='外购件偏差值',
+                                     line=dict(color="#88C1D0")))
+            fig.add_trace(go.Scatter(x=time_b_clean, y=deviation_b_clean, mode='lines', name='自制件偏差值',
+                                     line=dict(color="#FFB27F")))
+
+
+            fig.update_layout(
+                title='DTW 对齐路径图',
+                xaxis_title='时间',
+                yaxis_title='偏差值',
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                margin=dict(l=0, r=0, t=30, b=0)
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 
     # 导出结果页面
     with tabs[3]:
